@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'djoser',
     'users.apps.UsersConfig',
+    'ingredients.apps.IngredientsConfig',
     'rest_framework.authtoken'
 ]
 
