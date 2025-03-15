@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'djoser',
     'users.apps.UsersConfig',
     'ingredients.apps.IngredientsConfig',
+    'recipes.apps.RecipesConfig',
+    'shopping_cart.apps.ShoppingCartConfig',
     'rest_framework.authtoken'
 ]
 
@@ -113,12 +115,15 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # Использует `Token <auth_token>`
         'rest_framework.authentication.TokenAuthentication',
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',  # Использует `Bearer <jwt_access_token>`
     ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Должен быть открыт доступ
+    ],
 }
 
 DJOSER = {
-    'LOGIN_FIELD': 'email',  # Логинимся по email
+    "HIDE_USERS": False,
+    "DISABLE_ENDPOINTS": ["users"],
 }
 
 AUTH_USER_MODEL = 'users.CustomUser'
