@@ -19,7 +19,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'password')
+        fields = (
+            'id',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'password')
 
     def validate_username(self, value):
         """Проверяем username по регулярному выражению"""
@@ -87,7 +93,9 @@ class UserListSerializer(serializers.ModelSerializer):
 
 
 class AvatarSerializer(serializers.ModelSerializer):
-    avatar = serializers.CharField(write_only=True, required=True)  # Гарантируем, что поле требуется
+    avatar = serializers.CharField(
+        write_only=True,
+        required=True)  # Гарантируем, что поле требуется
 
     class Meta:
         model = CustomUser
@@ -106,19 +114,20 @@ class AvatarSerializer(serializers.ModelSerializer):
                 name=f"user_avatar.{ext}"
             )
         except Exception:
-            raise serializers.ValidationError("Некорректный формат изображения.")
+            raise serializers.ValidationError(
+                "Некорректный формат изображения.")
 
         return data
 
     def update(self, instance, validated_data):
         """Обновляем аватар пользователя"""
-        avatar = validated_data.get("avatar")  # Используем get() вместо прямого доступа
+        avatar = validated_data.get(
+            "avatar")  # Используем get() вместо прямого доступа
 
         if avatar is None:
-            raise serializers.ValidationError({"avatar": "Поле 'avatar' обязательно."})
+            raise serializers.ValidationError(
+                {"avatar": "Поле 'avatar' обязательно."})
 
         instance.avatar = avatar
         instance.save()
         return instance
-
-

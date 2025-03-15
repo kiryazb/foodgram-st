@@ -4,6 +4,7 @@ from ingredients.models import Ingredient
 
 User = get_user_model()
 
+
 class Recipe(models.Model):
     """Модель рецепта"""
     author = models.ForeignKey(
@@ -17,8 +18,11 @@ class Recipe(models.Model):
         verbose_name="Название рецепта"
     )
     text = models.TextField(verbose_name="Описание")
-    cooking_time = models.PositiveIntegerField(verbose_name="Время приготовления (минуты)")
-    image = models.ImageField(upload_to="recipes/images/", verbose_name="Картинка")
+    cooking_time = models.PositiveIntegerField(
+        verbose_name="Время приготовления (минуты)")
+    image = models.ImageField(
+        upload_to="recipes/images/",
+        verbose_name="Картинка")
 
     ingredients = models.ManyToManyField(
         Ingredient,

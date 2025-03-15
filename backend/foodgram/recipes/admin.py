@@ -7,7 +7,11 @@ from recipes.models import Recipe
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'get_author_name')
-    search_fields = ('name', 'author__username', 'author__first_name', 'author__last_name')
+    search_fields = (
+        'name',
+        'author__username',
+        'author__first_name',
+        'author__last_name')
     list_filter = ('author', 'name')
     readonly_fields = ('favorites_count',)
 

@@ -21,15 +21,18 @@ class ShoppingCartView(APIView):
         user = request.user
 
         # Получаем все записи из корзины текущего пользователя
-        cart_items = ShoppingCart.objects.filter(user=user).select_related('recipe')
+        cart_items = ShoppingCart.objects.filter(
+            user=user).select_related('recipe')
 
         # Собираем ID всех рецептов в корзине
         recipe_ids = cart_items.values_list('recipe__id', flat=True)
 
         # Из таблицы RecipeIngredient берём ингредиенты для этих рецептов
-        ingredients_qs = RecipeIngredient.objects.filter(recipe_id__in=recipe_ids)
+        ingredients_qs = RecipeIngredient.objects.filter(
+            recipe_id__in=recipe_ids)
 
-        # Группируем и суммируем количество по имени и ед. измерения ингредиента
+        # Группируем и суммируем количество по имени и ед. измерения
+        # ингредиента
         ingredients_data = (
             ingredients_qs
             .values('ingredient__name', 'ingredient__measurement_unit')
@@ -48,7 +51,8 @@ class ShoppingCartView(APIView):
         content = '\n'.join(lines)
 
         # Возвращаем файл с заголовком на скачивание
-        response = HttpResponse(content, content_type='text/plain; charset=UTF-8')
+        response = HttpResponse(
+            content, content_type='text/plain; charset=UTF-8')
         response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
         return response
 
@@ -77,7 +81,8 @@ class ShoppingCartView(APIView):
             return Response({'error': 'Рецепт не найден.'},
                             status=status.HTTP_404_NOT_FOUND)
 
-        cart_item = ShoppingCart.objects.filter(user=user, recipe=recipe).first()
+        cart_item = ShoppingCart.objects.filter(
+            user=user, recipe=recipe).first()
         if not cart_item:
             return Response({'error': 'Рецепта нет в списке покупок.'},
                             status=status.HTTP_400_BAD_REQUEST)

@@ -21,7 +21,8 @@ class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения RecipeIngredient."""
     id = serializers.IntegerField(source="ingredient.id")
     name = serializers.CharField(source="ingredient.name")
-    measurement_unit = serializers.CharField(source="ingredient.measurement_unit")
+    measurement_unit = serializers.CharField(
+        source="ingredient.measurement_unit")
     amount = serializers.IntegerField()
 
     class Meta:
@@ -82,25 +83,30 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def validate_ingredients(self, ingredients):
         """Проверяем, что список ингредиентов не пуст, не содержит дубликатов и все ингредиенты существуют."""
         if not ingredients:
-            raise serializers.ValidationError("Рецепт должен содержать хотя бы один ингредиент.")
+            raise serializers.ValidationError(
+                "Рецепт должен содержать хотя бы один ингредиент.")
 
         ingredient_ids = [ingredient["id"] for ingredient in ingredients]
 
         # Проверяем дубликаты
         if len(ingredient_ids) != len(set(ingredient_ids)):
-            raise serializers.ValidationError("В рецепте не должно быть повторяющихся ингредиентов.")
+            raise serializers.ValidationError(
+                "В рецепте не должно быть повторяющихся ингредиентов.")
 
-        existing_ingredients = Ingredient.objects.filter(id__in=ingredient_ids).values_list("id", flat=True)
+        existing_ingredients = Ingredient.objects.filter(
+            id__in=ingredient_ids).values_list("id", flat=True)
         missing_ingredients = set(ingredient_ids) - set(existing_ingredients)
         if missing_ingredients:
-            raise serializers.ValidationError(f"Некоторые ингредиенты не существуют: {missing_ingredients}")
+            raise serializers.ValidationError(
+                f"Некоторые ингредиенты не существуют: {missing_ingredients}")
 
         return ingredients
 
     def validate_cooking_time(self, value):
         """Проверяем, что время приготовления не меньше 1 минуты."""
         if value < 1:
-            raise serializers.ValidationError("Время приготовления должно быть минимум 1 минута.")
+            raise serializers.ValidationError(
+                "Время приготовления должно быть минимум 1 минута.")
         return value
 
     def get_author(self, obj):
@@ -119,7 +125,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def get_ingredients_read(self, obj):
         # obj -- это Recipe
         recipe_ingredients = obj.recipe_ingredients.all()  # Получаем RecipeIngredient
-        return IngredientInRecipeReadSerializer(recipe_ingredients, many=True).data
+        return IngredientInRecipeReadSerializer(
+            recipe_ingredients, many=True).data
 
     def create(self, validated_data):
         """Создание нового рецепта."""
@@ -147,16 +154,21 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop("ingredients", None)
 
         if ingredients_data is None:
-            raise serializers.ValidationError({"ingredients": "Поле не передано."})
+            raise serializers.ValidationError(
+                {"ingredients": "Поле не передано."})
 
         if "ingredients" in validated_data and not validated_data["ingredients"]:
-            raise serializers.ValidationError({"ingredients": "Рецепт должен содержать хотя бы один ингредиент."})
+            raise serializers.ValidationError(
+                {"ingredients": "Рецепт должен содержать хотя бы один ингредиент."})
 
         if ingredients_data is not None:
-            ingredient_ids = [ingredient["id"] for ingredient in ingredients_data]
-            existing_ingredients = Ingredient.objects.filter(id__in=ingredient_ids).values_list("id", flat=True)
+            ingredient_ids = [ingredient["id"]
+                              for ingredient in ingredients_data]
+            existing_ingredients = Ingredient.objects.filter(
+                id__in=ingredient_ids).values_list("id", flat=True)
 
-            missing_ingredients = set(ingredient_ids) - set(existing_ingredients)
+            missing_ingredients = set(
+                ingredient_ids) - set(existing_ingredients)
             if missing_ingredients:
                 raise serializers.ValidationError(
                     {"ingredients": f"Некоторые ингредиенты не существуют: {missing_ingredients}"})
@@ -166,7 +178,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     {"ingredients": "В рецепте не должно быть повторяющихся ингредиентов."})
 
             if "cooking_time" in validated_data and validated_data["cooking_time"] < 1:
-                raise serializers.ValidationError({"cooking_time": "Время приготовления должно быть минимум 1 минута."})
+                raise serializers.ValidationError(
+                    {"cooking_time": "Время приготовления должно быть минимум 1 минута."})
 
         # 2. Обновляем поля рецепта (name, text, image, cooking_time, и т.д.)
         for attr, value in validated_data.items():
@@ -178,7 +191,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.filter(recipe=instance).delete()
             new_ri = []
             for ingredient_data in ingredients_data:
-                ingredient_obj = Ingredient.objects.get(id=ingredient_data["id"])
+                ingredient_obj = Ingredient.objects.get(
+                    id=ingredient_data["id"])
                 new_ri.append(
                     RecipeIngredient(
                         recipe=instance,
@@ -231,7 +245,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_ingredients(self, obj):
         # Получаем все RecipeIngredient для этого рецепта
         recipe_ingredients = obj.recipe_ingredients.all()
-        return IngredientInRecipeReadSerializer(recipe_ingredients, many=True).data
+        return IngredientInRecipeReadSerializer(
+            recipe_ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         return True
@@ -243,7 +258,3 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             # Через related_name='in_shopping_cart' проверяем наличие записи
             return obj.in_shopping_cart.filter(user=user).exists()
         return False
-
-
-
-

@@ -57,8 +57,6 @@ class RecipeFilter(FilterSet):
         return queryset
 
 
-
-
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -67,7 +65,8 @@ class RecipeViewSet(ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        # Если list/retrieve → RecipeReadSerializer, иначе → RecipeCreateSerializer
+        # Если list/retrieve → RecipeReadSerializer, иначе →
+        # RecipeCreateSerializer
         if self.action in ["list", "retrieve"]:
             return RecipeReadSerializer
         return RecipeCreateSerializer

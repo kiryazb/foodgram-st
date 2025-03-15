@@ -6,7 +6,10 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='users')
 
 urlpatterns = [
-    path('users/set_password/', SetPasswordView.as_view(), name='set-password'),
+    path(
+        'users/set_password/',
+        SetPasswordView.as_view(),
+        name='set-password'),
     path('', include(router.urls)),
     path(
         'users/<int:id>/',

@@ -5,12 +5,16 @@ from rest_framework.permissions import AllowAny
 from .models import Ingredient
 from .serializers import IngredientSerializer
 
+
 class IngredientFilter(FilterSet):
-    name = CharFilter(field_name="name", lookup_expr="istartswith")  # Начало слова
+    name = CharFilter(
+        field_name="name",
+        lookup_expr="istartswith")  # Начало слова
 
     class Meta:
         model = Ingredient
         fields = ["name"]
+
 
 class IngredientViewSet(ReadOnlyModelViewSet):
     """API для получения списка ингредиентов с фильтрацией по началу имени."""
@@ -19,4 +23,3 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter  # Используем кастомный фильтр
-

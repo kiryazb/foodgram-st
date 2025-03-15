@@ -9,7 +9,10 @@ router = DefaultRouter()
 router.register(r"recipes", RecipeViewSet, basename="recipes")
 
 urlpatterns = [
-    path('recipes/download_shopping_cart/', ShoppingCartView.as_view(), name='shopping_cart_download'),
+    path(
+        'recipes/download_shopping_cart/',
+        ShoppingCartView.as_view(),
+        name='shopping_cart_download'),
     path(
         'recipes/<int:recipe_id>/favorite/',
         FavoriteView.as_view(),

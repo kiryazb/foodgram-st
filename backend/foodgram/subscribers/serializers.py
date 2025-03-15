@@ -5,6 +5,7 @@ from recipes.models import Recipe  # Импортируем модель рец�
 
 User = get_user_model()
 
+
 class RecipeShortSerializer(serializers.ModelSerializer):
     """Короткий сериализатор для списка рецептов."""
 
@@ -12,20 +13,33 @@ class RecipeShortSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ['id', 'name', 'image', 'cooking_time']
 
+
 class SubscriptionSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(source='author.email', read_only=True)
     id = serializers.IntegerField(source='author.id', read_only=True)
     username = serializers.CharField(source='author.username', read_only=True)
-    first_name = serializers.CharField(source='author.first_name', read_only=True)
-    last_name = serializers.CharField(source='author.last_name', read_only=True)
+    first_name = serializers.CharField(
+        source='author.first_name', read_only=True)
+    last_name = serializers.CharField(
+        source='author.last_name', read_only=True)
     avatar = serializers.ImageField(source='author.avatar', read_only=True)
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.IntegerField(source='author.recipes.count', read_only=True)
+    recipes_count = serializers.IntegerField(
+        source='author.recipes.count', read_only=True)
 
     class Meta:
         model = Subscription
-        fields = ['email', 'id', 'username', 'first_name', 'last_name', 'avatar', 'is_subscribed', 'recipes', 'recipes_count']
+        fields = [
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'avatar',
+            'is_subscribed',
+            'recipes',
+            'recipes_count']
 
     def get_is_subscribed(self, obj):
         return True
@@ -42,18 +56,20 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return RecipeShortSerializer(recipes, many=True).data
 
 
-
 class SubscriptionListSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения подписок пользователя."""
     email = serializers.EmailField(source='author.email', read_only=True)
     id = serializers.IntegerField(source='author.id', read_only=True)
     username = serializers.CharField(source='author.username', read_only=True)
-    first_name = serializers.CharField(source='author.first_name', read_only=True)
-    last_name = serializers.CharField(source='author.last_name', read_only=True)
+    first_name = serializers.CharField(
+        source='author.first_name', read_only=True)
+    last_name = serializers.CharField(
+        source='author.last_name', read_only=True)
     avatar = serializers.ImageField(source='author.avatar', read_only=True)
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.IntegerField(source='author.recipes.count', read_only=True)
+    recipes_count = serializers.IntegerField(
+        source='author.recipes.count', read_only=True)
 
     class Meta:
         model = Subscription

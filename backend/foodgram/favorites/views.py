@@ -38,7 +38,8 @@ class FavoriteView(APIView):
         """
         user = request.user
         recipe = get_object_or_404(Recipe, pk=recipe_id)
-        favorite_obj = Favorite.objects.filter(user=user, recipe=recipe).first()
+        favorite_obj = Favorite.objects.filter(
+            user=user, recipe=recipe).first()
 
         if not favorite_obj:
             return Response(

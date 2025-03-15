@@ -122,4 +122,5 @@ class SetPasswordView(APIView):
         user.set_password(new_password)
         user.save()
 
-        return Response({"detail": "Пароль успешно изменен."}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail": "Пароль успешно изменен."},
+                        status=status.HTTP_204_NO_CONTENT)

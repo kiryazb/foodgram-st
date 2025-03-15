@@ -4,6 +4,7 @@ from rest_framework import serializers
 from favorites.models import Favorite
 from recipes.models import Recipe
 
+
 class FavoriteRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения рецепта внутри избранного."""
     id = serializers.ReadOnlyField(source='recipe.id')

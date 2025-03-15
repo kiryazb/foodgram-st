@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import ShoppingCart
 
+
 class ShoppingCartSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='recipe.id')
     name = serializers.ReadOnlyField(source='recipe.name')

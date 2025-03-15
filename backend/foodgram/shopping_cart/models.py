@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models import UniqueConstraint
 
+
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
