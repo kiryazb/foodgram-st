@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'recipes.apps.RecipesConfig',
     'shopping_cart.apps.ShoppingCartConfig',
     'favorites.apps.FavoritesConfig',
+    'subscribers.apps.SubscribersConfig',
     'rest_framework.authtoken'
 ]
 

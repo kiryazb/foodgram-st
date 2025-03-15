@@ -6,7 +6,7 @@ from django.http import HttpResponse
 
 from recipes.models import Recipe, RecipeIngredient
 from shopping_cart.models import ShoppingCart
-from shopping_cart.serializator import ShoppingCartSerializer
+from shopping_cart.serializers import ShoppingCartSerializer
 from django.db.models import Sum
 
 

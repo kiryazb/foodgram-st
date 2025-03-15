@@ -1,4 +1,5 @@
-from django_filters import FilterSet, NumberFilter
+from django.db.models import Exists, OuterRef
+from django_filters import FilterSet, NumberFilter, BooleanFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -9,6 +10,8 @@ from rest_framework import status
 
 from recipes.models import Recipe
 from recipes.serializers import RecipeReadSerializer, RecipeCreateSerializer
+from shopping_cart.models import ShoppingCart
+
 
 class RecipePagination(PageNumberPagination):
     """Пагинация для рецептов."""
@@ -16,13 +19,44 @@ class RecipePagination(PageNumberPagination):
     page_size_query_param = "limit"  # Позволяет пользователю указывать `?limit=5`
     max_page_size = 100  # Максимально допустимое количество на странице
 
+
 class RecipeFilter(FilterSet):
-    """Фильтр для поиска рецептов по автору."""
-    author = NumberFilter(field_name="author__id")  # Фильтрация по ID автора
+    """Фильтр для поиска рецептов по автору, избранному и корзине."""
+    author = NumberFilter(field_name="author__id")
+    is_in_shopping_cart = NumberFilter(method='filter_in_shopping_cart')
+    is_favorited = NumberFilter(method='filter_is_favorited')
 
     class Meta:
         model = Recipe
-        fields = ["author"]
+        fields = ["author", "is_in_shopping_cart", "is_favorited"]
+
+    def filter_in_shopping_cart(self, queryset, name, value):
+        """Фильтрует рецепты, находящиеся в списке покупок пользователя, если `is_in_shopping_cart=1`."""
+        print(f"Фильтрация: is_in_shopping_cart={value}")  # Debug
+
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none() if value == 1 else queryset
+
+        if value == 1:
+            return queryset.filter(in_shopping_cart__user=user)
+
+        return queryset
+
+    def filter_is_favorited(self, queryset, name, value):
+        """Фильтрует рецепты, находящиеся в избранном пользователя, если `is_favorited=1`."""
+        print(f"Фильтрация: is_favorited={value}")
+
+        user = self.request.user
+        if not user.is_authenticated:
+            return queryset.none() if value == 1 else queryset
+
+        if value == 1:
+            return queryset.filter(in_favorites__user=user)
+
+        return queryset
+
+
 
 
 class RecipeViewSet(ModelViewSet):

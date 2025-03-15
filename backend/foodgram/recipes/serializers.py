@@ -1,6 +1,8 @@
 from collections import OrderedDict
 
 from rest_framework import serializers
+
+from favorites.models import Favorite
 from .models import Recipe, RecipeIngredient, Ingredient
 from .utils import Base64ImageField
 
@@ -38,16 +40,30 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     # Новое поле для текущего пользователя
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
+    is_favorited = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
         fields = (
-            "id", "author",
-            "ingredients", "ingredients_read",
-            "image", "name",
-            "text", "cooking_time",
-            "is_in_shopping_cart",   # <-- добавили
+            "id",
+            "author",
+            "ingredients",
+            "ingredients_read",
+            "is_favorited",
+            "is_in_shopping_cart",
+            "name",
+            "image",
+            "text",
+            "cooking_time"
         )
+
+    def to_representation(self, instance):
+        """
+        Этот метод вызывается при возврате данных (в т.ч. после создания/обновления рецепта).
+        """
+        ret = super().to_representation(instance)
+        ret["ingredients"] = ret.pop("ingredients_read")
+        return ret
 
     def get_is_in_shopping_cart(self, obj):
         """Проверка, находится ли рецепт у текущего пользователя в корзине."""
@@ -57,12 +73,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             return obj.in_shopping_cart.filter(user=user).exists()
         return False
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data['is_favorited'] = True
-        data['is_in_shopping_cart'] = True
-        print("🔥 to_representation вызван!")  # Проверяем, вызывается ли метод
-        return data
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return Favorite.objects.filter(user=user, recipe=obj).exists()
+        return False
 
     def validate_ingredients(self, ingredients):
         """Проверяем, что список ингредиентов не пуст, не содержит дубликатов и все ингредиенты существуют."""
