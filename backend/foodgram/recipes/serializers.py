@@ -34,12 +34,28 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     ingredients_read = serializers.SerializerMethodField(read_only=True)
 
     image = Base64ImageField()
-
     author = serializers.SerializerMethodField(read_only=True)
+
+    # Новое поле для текущего пользователя
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
-        fields = ("id", "author", "ingredients", "ingredients_read", "image", "name", "text", "cooking_time")
+        fields = (
+            "id", "author",
+            "ingredients", "ingredients_read",
+            "image", "name",
+            "text", "cooking_time",
+            "is_in_shopping_cart",   # <-- добавили
+        )
+
+    def get_is_in_shopping_cart(self, obj):
+        """Проверка, находится ли рецепт у текущего пользователя в корзине."""
+        user = self.context['request'].user
+        if user.is_authenticated:
+            # Через related_name='in_shopping_cart' проверяем наличие записи
+            return obj.in_shopping_cart.filter(user=user).exists()
+        return False
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -114,6 +130,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         """Обновление существующего рецепта (PATCH/PUT)."""
         # 1. Извлекаем список ингредиентов (если передан)
         ingredients_data = validated_data.pop("ingredients", None)
+
+        if ingredients_data is None:
+            raise serializers.ValidationError({"ingredients": "Поле не передано."})
 
         if "ingredients" in validated_data and not validated_data["ingredients"]:
             raise serializers.ValidationError({"ingredients": "Рецепт должен содержать хотя бы один ингредиент."})
@@ -203,7 +222,12 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return True
 
     def get_is_in_shopping_cart(self, obj):
-        return True
+        """Проверка, находится ли рецепт у текущего пользователя в корзине."""
+        user = self.context['request'].user
+        if user.is_authenticated:
+            # Через related_name='in_shopping_cart' проверяем наличие записи
+            return obj.in_shopping_cart.filter(user=user).exists()
+        return False
 
 
 
