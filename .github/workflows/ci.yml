@@ -31,6 +31,7 @@ jobs:
       - name: 🚀 Проверяем PEP8 (Flake8)
         run: |
           cd backend
+          pip install flake8
           flake8 .
 
       - name: 🏗️ Прогоняем тесты Django
