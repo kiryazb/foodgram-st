@@ -1,0 +1,56 @@
+name: Foodgram CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend_tests:
+    name: Тестирование Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Клонируем репозиторий
+        uses: actions/checkout@v4
+
+      - name: 🐍 Устанавливаем Python и зависимости
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: 🛠️ Устанавливаем зависимости Backend
+        run: |
+          cd backend
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🚀 Проверяем PEP8 (Flake8)
+        run: |
+          cd backend
+          flake8 .
+
+      - name: 🏗️ Прогоняем тесты Django
+        run: |
+          cd backend
+          python manage.py test
+
+  docker_build:
+    name: Проверка сборки Docker
+    runs-on: ubuntu-latest
+    needs: backend_tests
+
+    steps:
+      - name: 📥 Клонируем репозиторий
+        uses: actions/checkout@v4
+
+      - name: 🔨 Проверяем сборку Backend
+        run: |
+          docker build -t foodgram-backend-test ./backend
+
+      - name: 🔨 Проверяем сборку Frontend
+        run: |
+          docker build -t foodgram-frontend-test ./frontend
