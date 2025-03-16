@@ -71,9 +71,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_avatar(self, obj):
         """Возвращаем относительный путь к файлу аватара"""
         if obj.avatar:
-            return obj.avatar.url  # Вернёт относительный путь, например "/media/users/avatars/user_avatar.png"
+            # Вернёт относительный путь, например "/media/users/avatars/user_avatar.png"
+            return obj.avatar.url
         return None
-
 
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -103,7 +103,6 @@ class UserListSerializer(serializers.ModelSerializer):
         if obj.avatar:
             return obj.avatar.url  # Django сам отдаст относительный путь
         return None
-
 
 
 class AvatarSerializer(serializers.ModelSerializer):
