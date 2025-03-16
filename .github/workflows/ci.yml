@@ -37,6 +37,7 @@ jobs:
       - name: 🏗️ Прогоняем тесты Django
         run: |
           cd backend
+          cd foodgram
           python manage.py test
 
   docker_build:
