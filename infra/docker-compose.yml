@@ -2,7 +2,7 @@ services:
 
   frontend:
     container_name: foodgram-front
-    image: kiryazb/foodgram-frontend:latest  # Используем образ из Docker Hub
+    image: ${DOCKER_USERNAME}/foodgram-frontend:latest  # Используем переменную окружения
     restart: always
 
   nginx:
@@ -22,28 +22,38 @@ services:
     container_name: foodgram-db
     image: postgres:13
     restart: always
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./db/init/:/docker-entrypoint-initdb.d/
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       retries: 5
       timeout: 3s
 
   backend:
     container_name: foodgram-backend
-    image: kiryazb/foodgram-backend:latest  # Используем образ из Docker Hub
+    image: ${DOCKER_USERNAME}/foodgram-backend:latest  # Используем переменную окружения
     restart: always
     depends_on:
       db:
         condition: service_healthy
-    env_file:
-      - .env
+    environment:
+      DEBUG: ${DEBUG}
+      SECRET_KEY: ${SECRET_KEY}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      DB_ENGINE: ${DB_ENGINE}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
     ports:
       - "8000:8000"
     volumes:
