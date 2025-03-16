@@ -48,7 +48,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
-    avatar = serializers.ImageField()
+    avatar = serializers.SerializerMethodField()  # Делаем кастомное поле
 
     class Meta:
         model = CustomUser
@@ -68,10 +68,17 @@ class UserProfileSerializer(serializers.ModelSerializer):
             return False
         return obj.followers.filter(user=user).exists()  # Проверяем подписку
 
+    def get_avatar(self, obj):
+        """Возвращаем относительный путь к файлу аватара"""
+        if obj.avatar:
+            return obj.avatar.url  # Вернёт относительный путь, например "/media/users/avatars/user_avatar.png"
+        return None
+
+
 
 class UserListSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
-    avatar = serializers.ImageField()
+    avatar = serializers.SerializerMethodField()  # Используем кастомное поле
 
     class Meta:
         model = CustomUser
@@ -90,6 +97,13 @@ class UserListSerializer(serializers.ModelSerializer):
         if not user.is_authenticated:
             return False
         return obj.followers.filter(author=user).exists()
+
+    def get_avatar(self, obj):
+        """Возвращаем относительный путь к файлу аватара"""
+        if obj.avatar:
+            return obj.avatar.url  # Django сам отдаст относительный путь
+        return None
+
 
 
 class AvatarSerializer(serializers.ModelSerializer):
