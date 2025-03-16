@@ -1,5 +1,4 @@
-from django.db.models import Exists, OuterRef
-from django_filters import FilterSet, NumberFilter, BooleanFilter
+from django_filters import FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -10,11 +9,11 @@ from rest_framework import status
 
 from recipes.models import Recipe
 from recipes.serializers import RecipeReadSerializer, RecipeCreateSerializer
-from shopping_cart.models import ShoppingCart
 
 
 class RecipePagination(PageNumberPagination):
     """Пагинация для рецептов."""
+
     page_size = 10  # Количество объектов на одной странице
     page_size_query_param = "limit"  # Позволяет пользователю указывать `?limit=5`
     max_page_size = 100  # Максимально допустимое количество на странице
@@ -22,9 +21,10 @@ class RecipePagination(PageNumberPagination):
 
 class RecipeFilter(FilterSet):
     """Фильтр для поиска рецептов по автору, избранному и корзине."""
+
     author = NumberFilter(field_name="author__id")
-    is_in_shopping_cart = NumberFilter(method='filter_in_shopping_cart')
-    is_favorited = NumberFilter(method='filter_is_favorited')
+    is_in_shopping_cart = NumberFilter(method="filter_in_shopping_cart")
+    is_favorited = NumberFilter(method="filter_is_favorited")
 
     class Meta:
         model = Recipe
@@ -80,6 +80,7 @@ class RecipeViewSet(ModelViewSet):
         recipe = self.get_object()
         if recipe.author != self.request.user:
             from rest_framework.exceptions import PermissionDenied
+
             raise PermissionDenied("Вы не являетесь автором данного рецепта.")
         serializer.save()
 
@@ -88,13 +89,14 @@ class RecipeViewSet(ModelViewSet):
         # Проверяем, что удаляет автор
         if recipe.author != self.request.user:
             from rest_framework.exceptions import PermissionDenied
+
             raise PermissionDenied("Вы не являетесь автором данного рецепта.")
 
         # Если всё ок, удаляем
         recipe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['get'], url_path='get-link')
+    @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
         """
         Возвращает короткую ссылку для указанного рецепта.

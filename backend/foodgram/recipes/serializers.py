@@ -1,14 +1,12 @@
-from collections import OrderedDict
-
 from rest_framework import serializers
 
 from favorites.models import Favorite
-from .models import Recipe, RecipeIngredient, Ingredient
-from .utils import Base64ImageField
+from .models import Recipe, RecipeIngredient
 
 
 class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для записи ингредиента."""
+
     id = serializers.IntegerField()
     amount = serializers.IntegerField(min_value=1)
 
@@ -19,10 +17,10 @@ class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
 
 class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения RecipeIngredient."""
+
     id = serializers.IntegerField(source="ingredient.id")
     name = serializers.CharField(source="ingredient.name")
-    measurement_unit = serializers.CharField(
-        source="ingredient.measurement_unit")
+    measurement_unit = serializers.CharField(source="ingredient.measurement_unit")
     amount = serializers.IntegerField()
 
     class Meta:
@@ -50,7 +48,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             "name",
             "image",
             "text",
-            "cooking_time"
+            "cooking_time",
         )
 
     def to_representation(self, instance):
@@ -59,13 +57,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return ret
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context['request'].user
+        user = self.context["request"].user
         if user.is_authenticated:
             return obj.in_shopping_cart.filter(user=user).exists()
         return False
 
     def get_is_favorited(self, obj):
-        user = self.context['request'].user
+        user = self.context["request"].user
         if user.is_authenticated:
             return Favorite.objects.filter(user=user, recipe=obj).exists()
         return False
@@ -79,7 +77,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "is_subscribed": False,
-            "avatar": user.avatar.url if user.avatar else None
+            "avatar": user.avatar.url if user.avatar else None,
         }
 
     def get_ingredients_read(self, obj):
@@ -95,6 +93,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
 class RecipeReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения детальной информации о рецепте."""
+
     author = serializers.SerializerMethodField()
     ingredients = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()  # Используем кастомное поле
@@ -104,9 +103,15 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
-            "id", "author", "ingredients",
-            "is_favorited", "is_in_shopping_cart",
-            "name", "image", "text", "cooking_time"
+            "id",
+            "author",
+            "ingredients",
+            "is_favorited",
+            "is_in_shopping_cart",
+            "name",
+            "image",
+            "text",
+            "cooking_time",
         )
 
     def get_author(self, obj):
@@ -129,7 +134,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return True
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context['request'].user
+        user = self.context["request"].user
         if user.is_authenticated:
             return obj.in_shopping_cart.filter(user=user).exists()
         return False

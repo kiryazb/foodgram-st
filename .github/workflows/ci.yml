@@ -32,7 +32,7 @@ jobs:
         run: |
           cd backend
           pip install flake8
-          flake8 .
+          flake8 . --max-line-length=120
 
       - name: 🏗️ Прогоняем тесты Django
         run: |

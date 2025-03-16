@@ -24,8 +24,7 @@ class FavoriteView(APIView):
         # Проверяем, не в избранном ли уже рецепт
         if Favorite.objects.filter(user=user, recipe=recipe).exists():
             return Response(
-                {'errors': 'Рецепт уже в избранном'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"errors": "Рецепт уже в избранном"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         favorite_obj = Favorite.objects.create(user=user, recipe=recipe)
@@ -38,13 +37,12 @@ class FavoriteView(APIView):
         """
         user = request.user
         recipe = get_object_or_404(Recipe, pk=recipe_id)
-        favorite_obj = Favorite.objects.filter(
-            user=user, recipe=recipe).first()
+        favorite_obj = Favorite.objects.filter(user=user, recipe=recipe).first()
 
         if not favorite_obj:
             return Response(
-                {'errors': 'Рецепта нет в избранном'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"errors": "Рецепта нет в избранном"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         favorite_obj.delete()

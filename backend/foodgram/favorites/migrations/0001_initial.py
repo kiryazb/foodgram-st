@@ -6,37 +6,52 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('recipes', '0002_auto_20250315_0045'),
+        ("recipes", "0002_auto_20250315_0045"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Favorite',
+            name="Favorite",
             fields=[
-                ('id', models.BigAutoField(auto_created=True,
-                 primary_key=True, serialize=False, verbose_name='ID')),
-                ('added_at', models.DateTimeField(auto_now_add=True)),
-                ('recipe',
-                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
-                                   related_name='in_favorites',
-                                   to='recipes.recipe')),
-                ('user',
-                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
-                                   related_name='favorites',
-                                   to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("added_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "recipe",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="in_favorites",
+                        to="recipes.recipe",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="favorites",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-added_at'],
+                "ordering": ["-added_at"],
             },
         ),
         migrations.AddConstraint(
-            model_name='favorite',
+            model_name="favorite",
             constraint=models.UniqueConstraint(
-                fields=('user', 'recipe'), name='unique_user_recipe_favorite'),
+                fields=("user", "recipe"), name="unique_user_recipe_favorite"
+            ),
         ),
     ]

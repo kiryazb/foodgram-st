@@ -7,9 +7,7 @@ from .serializers import IngredientSerializer
 
 
 class IngredientFilter(FilterSet):
-    name = CharFilter(
-        field_name="name",
-        lookup_expr="istartswith")  # Начало слова
+    name = CharFilter(field_name="name", lookup_expr="istartswith")  # Начало слова
 
     class Meta:
         model = Ingredient
@@ -18,6 +16,7 @@ class IngredientFilter(FilterSet):
 
 class IngredientViewSet(ReadOnlyModelViewSet):
     """API для получения списка ингредиентов с фильтрацией по началу имени."""
+
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = [AllowAny]

@@ -5,74 +5,73 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('ingredients', '0001_initial'),
-        ('recipes', '0001_initial'),
+        ("ingredients", "0001_initial"),
+        ("recipes", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='recipe',
+            name="recipe",
             options={
-                'ordering': ['-id'],
-                'verbose_name': 'Рецепт',
-                'verbose_name_plural': 'Рецепты'},
+                "ordering": ["-id"],
+                "verbose_name": "Рецепт",
+                "verbose_name_plural": "Рецепты",
+            },
         ),
         migrations.RemoveField(
-            model_name='recipe',
-            name='created_at',
+            model_name="recipe",
+            name="created_at",
         ),
         migrations.AlterField(
-            model_name='recipe',
-            name='cooking_time',
+            model_name="recipe",
+            name="cooking_time",
             field=models.PositiveIntegerField(
-                verbose_name='Время приготовления (минуты)'),
+                verbose_name="Время приготовления (минуты)"
+            ),
         ),
         migrations.AlterField(
-            model_name='recipe',
-            name='image',
+            model_name="recipe",
+            name="image",
             field=models.ImageField(
-                upload_to='recipes/images/',
-                verbose_name='Картинка'),
+                upload_to="recipes/images/", verbose_name="Картинка"
+            ),
         ),
         migrations.AlterField(
-            model_name='recipe',
-            name='ingredients',
+            model_name="recipe",
+            name="ingredients",
             field=models.ManyToManyField(
-                related_name='recipes',
-                through='recipes.RecipeIngredient',
-                to='ingredients.Ingredient',
-                verbose_name='Ингредиенты'),
+                related_name="recipes",
+                through="recipes.RecipeIngredient",
+                to="ingredients.Ingredient",
+                verbose_name="Ингредиенты",
+            ),
         ),
         migrations.AlterField(
-            model_name='recipe',
-            name='name',
-            field=models.CharField(
-                max_length=256,
-                verbose_name='Название рецепта'),
+            model_name="recipe",
+            name="name",
+            field=models.CharField(max_length=256, verbose_name="Название рецепта"),
         ),
         migrations.AlterField(
-            model_name='recipeingredient',
-            name='ingredient',
+            model_name="recipeingredient",
+            name="ingredient",
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
-                related_name='ingredient_recipes',
-                to='ingredients.ingredient'),
+                related_name="ingredient_recipes",
+                to="ingredients.ingredient",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='recipeingredient',
+            name="recipeingredient",
             unique_together=set(),
         ),
         migrations.AddConstraint(
-            model_name='recipeingredient',
+            model_name="recipeingredient",
             constraint=models.UniqueConstraint(
-                fields=(
-                    'recipe',
-                    'ingredient'),
-                name='unique_recipe_ingredient'),
+                fields=("recipe", "ingredient"), name="unique_recipe_ingredient"
+            ),
         ),
         migrations.DeleteModel(
-            name='Ingredient',
+            name="Ingredient",
         ),
     ]

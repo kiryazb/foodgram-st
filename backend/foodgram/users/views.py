@@ -5,21 +5,32 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet, ModelViewSet, ViewSet
+from rest_framework.viewsets import (
+    GenericViewSet,
+    ReadOnlyModelViewSet,
+    ModelViewSet,
+)
 from rest_framework.mixins import CreateModelMixin
 
 from .models import CustomUser
-from .serializers import UserRegistrationSerializer, UserProfileSerializer, UserListSerializer, AvatarSerializer
+from .serializers import (
+    UserRegistrationSerializer,
+    UserProfileSerializer,
+    UserListSerializer,
+    AvatarSerializer,
+)
 
 
 class CustomPagination(PageNumberPagination):
     """Кастомная пагинация для списка пользователей"""
+
     page_size = 10
-    page_size_query_param = 'limit'
+    page_size_query_param = "limit"
 
 
 class UserRegistrationViewSet(CreateModelMixin, GenericViewSet):
     """ViewSet для регистрации пользователей"""
+
     queryset = CustomUser.objects.all()
     serializer_class = UserRegistrationSerializer
 
@@ -33,6 +44,7 @@ class UserRegistrationViewSet(CreateModelMixin, GenericViewSet):
 
 class UserProfileView(RetrieveAPIView):
     """Получение профиля пользователя по ID"""
+
     queryset = CustomUser.objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [AllowAny]
@@ -41,6 +53,7 @@ class UserProfileView(RetrieveAPIView):
 
 class UserListView(ReadOnlyModelViewSet):
     """Получение списка пользователей с пагинацией"""
+
     queryset = CustomUser.objects.all()
     serializer_class = UserListSerializer
     permission_classes = [AllowAny]
@@ -49,7 +62,8 @@ class UserListView(ReadOnlyModelViewSet):
 
 class UserViewSet(ModelViewSet):
     """ViewSet для списка пользователей, регистрации и профиля"""
-    queryset = CustomUser.objects.all().order_by('id')
+
+    queryset = CustomUser.objects.all().order_by("id")
     permission_classes = [AllowAny]
     pagination_class = CustomPagination
 
@@ -59,30 +73,27 @@ class UserViewSet(ModelViewSet):
             return UserListSerializer
         return UserRegistrationSerializer
 
-    @action(detail=False, methods=["get"],
-            permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
     def me(self, request):
         """Получение текущего пользователя (GET /api/users/me/)"""
-        serializer = UserListSerializer(
-            request.user, context={
-                "request": request})
+        serializer = UserListSerializer(request.user, context={"request": request})
         return Response(serializer.data)
 
 
 class AvatarView(APIView):
     """Обновление аватара пользователя"""
+
     permission_classes = [IsAuthenticated]
 
     def put(self, request, *args, **kwargs):
         user = request.user
         serializer = AvatarSerializer(
-            user, data=request.data, partial=True, context={
-                'request': request})
+            user, data=request.data, partial=True, context={"request": request}
+        )
 
         if serializer.is_valid():
             serializer.save()
-            return Response({"avatar": user.avatar.url},
-                            status=status.HTTP_200_OK)
+            return Response({"avatar": user.avatar.url}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -92,14 +103,17 @@ class AvatarView(APIView):
         if user.avatar:
             user.avatar.delete()
             user.save()
-            return Response({"detail": "Аватар успешно удалён."},
-                            status=status.HTTP_204_NO_CONTENT)
-        return Response({"detail": "Аватар отсутствует."},
-                        status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Аватар успешно удалён."}, status=status.HTTP_204_NO_CONTENT
+            )
+        return Response(
+            {"detail": "Аватар отсутствует."}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class SetPasswordView(APIView):
     """Эндпоинт для смены пароля пользователя."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -110,17 +124,18 @@ class SetPasswordView(APIView):
         if not current_password or not new_password:
             return Response(
                 {"detail": "Оба поля (current_password и new_password) обязательны."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if not user.check_password(current_password):
             return Response(
                 {"detail": "Текущий пароль неверен."},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         user.set_password(new_password)
         user.save()
 
-        return Response({"detail": "Пароль успешно изменен."},
-                        status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"detail": "Пароль успешно изменен."}, status=status.HTTP_204_NO_CONTENT
+        )

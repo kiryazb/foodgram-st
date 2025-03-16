@@ -4,11 +4,12 @@ from .views import SubscriptionViewSet, SubscriptionListViewSet
 
 router = DefaultRouter()
 router.register(
-    r'users/subscriptions',
-    SubscriptionListViewSet,
-    basename='subscriptions')
+    r"users/subscriptions", SubscriptionListViewSet, basename="subscriptions"
+)
 
 urlpatterns = router.urls + [
-    path('users/<int:id>/subscribe/',
-         SubscriptionViewSet.as_view({'post': 'create', 'delete': 'destroy'})),
+    path(
+        "users/<int:id>/subscribe/",
+        SubscriptionViewSet.as_view({"post": "create", "delete": "destroy"}),
+    ),
 ]
