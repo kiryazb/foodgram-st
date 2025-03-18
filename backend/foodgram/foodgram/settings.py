@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", "default")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False")
+DEBUG = os.getenv("DEBUG", "True")
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -33,10 +33,9 @@ ALLOWED_HOSTS = [
     "foodgram-backend",
 ]
 
-MEDIA_URL = "/media/"  # Укажи свой домен/IP в продакшене
+MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-# Статика (CSS, JS)
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
@@ -99,10 +98,10 @@ WSGI_APPLICATION = "foodgram.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "default"),
-        "USER": os.getenv("DB_USER", "default"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "default"),
-        "HOST": os.getenv("DB_HOST", "default"),
+        "NAME": os.getenv("DB_NAME", "foodgram"),
+        "USER": os.getenv("DB_USER", "postgres"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "postgres"),
+        "HOST": os.getenv("DB_HOST", "localhost"),
         "PORT": os.getenv("DB_PORT", "5432"),
     }
 }

@@ -65,18 +65,14 @@ class RecipeViewSet(ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        # Если list/retrieve → RecipeReadSerializer, иначе →
-        # RecipeCreateSerializer
         if self.action in ["list", "retrieve"]:
             return RecipeReadSerializer
         return RecipeCreateSerializer
 
     def perform_create(self, serializer):
-        # При создании указываем автора
         serializer.save(author=self.request.user)
 
     def perform_update(self, serializer):
-        # Проверяем, что обновляет автор (опционально)
         recipe = self.get_object()
         if recipe.author != self.request.user:
             from rest_framework.exceptions import PermissionDenied
