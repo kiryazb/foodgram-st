@@ -272,12 +272,7 @@ class RecipeViewSet(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-    @action(
-        detail=True,
-        methods=["post", "delete"],
-        url_path="shopping_cart",
-        permission_classes=[IsAuthenticated],
-    )
+    @action(detail=True, methods=["post", "delete"], permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         """
         Добавить/удалить рецепт в корзину покупок.
@@ -288,23 +283,38 @@ class RecipeViewSet(ModelViewSet):
         if request.method == "POST":
             if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
                 return Response(
-                    {"error": "Рецепт уже в корзине."},
+                    {
+                        "error": f'Рецепт "{recipe.name}" уже добавлен в корзину.',
+                        "recipe_id": recipe.id,
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             ShoppingCart.objects.create(user=user, recipe=recipe)
             serializer = RecipeShortSerializer(recipe, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "message": f'Рецепт "{recipe.name}" успешно добавлен в корзину.',
+                    "recipe": serializer.data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
 
         elif request.method == "DELETE":
             shopping_cart_item = ShoppingCart.objects.filter(user=user, recipe=recipe)
             if not shopping_cart_item.exists():
                 return Response(
-                    {"error": "Рецепт отсутствует в корзине."},
+                    {
+                        "error": f'Рецепт "{recipe.name}" отсутствует в корзине.',
+                        "recipe_id": recipe.id,
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             shopping_cart_item.delete()
             return Response(
-                {"detail": "Рецепт удалён из корзины."},
+                {
+                    "message": f'Рецепт "{recipe.name}" удалён из корзины.',
+                    "recipe_id": recipe.id,
+                },
                 status=status.HTTP_204_NO_CONTENT,
             )
 
