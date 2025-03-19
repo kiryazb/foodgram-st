@@ -1,35 +1,70 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.db.models import Count
 
 from recipes.models import Recipe, User
+
+from django.utils.safestring import mark_safe
+
+
+class CookingTimeFilter(admin.SimpleListFilter):
+    """Фильтр по времени приготовления"""
+    title = "Время готовки"
+    parameter_name = "cooking_time_category"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("fast", "Быстрое (≤10 мин)"),
+            ("medium", "Среднее (11-30 мин)"),
+            ("long", "Долгое (>30 мин)"),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "fast":
+            return queryset.filter(cooking_time__lte=10)
+        if self.value() == "medium":
+            return queryset.filter(cooking_time__gt=10, cooking_time__lte=30)
+        if self.value() == "long":
+            return queryset.filter(cooking_time__gt=30)
+        return queryset
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "get_author_name")
-    search_fields = (
+    """Админка для рецептов."""
+
+    list_display = (
+        "id",
         "name",
-        "author__username",
-        "author__first_name",
-        "author__last_name",
+        "cooking_time",
+        "get_author_name",
+        "get_favorites_count",
+        "get_ingredients",
+        "get_image",
     )
-    list_filter = ("author", "name")
-    readonly_fields = ("favorites_count",)
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.annotate(favorites_count=Count("in_favorites"))
+    search_fields = ("name", "author__username", "author__first_name", "author__last_name")
+    list_filter = ("author", "name", CookingTimeFilter)
 
-    def favorites_count(self, obj):
-        return obj.in_favorites.count()
+    @admin.display(description="Автор")
+    def get_author_name(self, recipe):
+        return recipe.author.get_full_name() or recipe.author.username
 
-    favorites_count.short_description = "Добавлений в избранное"
+    @admin.display(description="Добавлений в избранное")
+    def get_favorites_count(self, recipe):
+        return recipe.favorites.count()
 
-    def get_author_name(self, obj):
-        return obj.author.username
+    @admin.display(description="Ингредиенты")
+    def get_ingredients(self, recipe):
+        """Выводит список ингредиентов в админке."""
+        ingredients = recipe.ingredients.values_list("ingredient__name", flat=True)
+        return ", ".join(ingredients)
 
-    get_author_name.short_description = "Автор"
+    @admin.display(description="Изображение")
+    def get_image(self, recipe):
+        """Отображает картинку в админке."""
+        if recipe.image:
+            return mark_safe(f'<img src="{recipe.image.url}" width="75" height="75" />')
+        return "Нет изображения"
 
 
 @admin.register(User)
@@ -43,14 +78,38 @@ class UserAdmin(UserAdmin):
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Персональная информация", {"fields": ("username", "first_name", "last_name", "avatar")}),
-        ("Права доступа", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        (
+            "Персональная информация",
+            {"fields": ("username", "first_name", "last_name", "avatar")},
+        ),
+        (
+            "Права доступа",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
         ("Даты", {"fields": ("last_login", "date_joined")}),
     )
 
     add_fieldsets = (
-        (None, {
-            "classes": ("wide",),
-            "fields": ("email", "username", "first_name", "last_name", "password1", "password2"),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "email",
+                    "username",
+                    "first_name",
+                    "last_name",
+                    "password1",
+                    "password2",
+                ),
+            },
+        ),
     )

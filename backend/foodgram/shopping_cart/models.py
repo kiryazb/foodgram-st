@@ -1,11 +1,14 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import UniqueConstraint
+
+User = get_user_model()
 
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="shopping_cart"
+        User, on_delete=models.CASCADE, related_name="shopping_cart"
     )
     recipe = models.ForeignKey(
         "recipes.Recipe",  # Указать путь до модели Recipe

@@ -1,6 +1,5 @@
-from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.db import models
 from ingredients.models import Ingredient
 from django.utils.translation import gettext_lazy as _
@@ -9,9 +8,7 @@ from django.utils.translation import gettext_lazy as _
 class User(AbstractUser):
     """Кастомная модель пользователя"""
 
-    email = models.EmailField(
-        _("Email"), unique=True, max_length=254
-    )
+    email = models.EmailField(_("Email"), unique=True, max_length=254)
     first_name = models.CharField(_("Имя"), max_length=150)
     last_name = models.CharField(_("Фамилия"), max_length=150)
     username = models.CharField(
@@ -21,7 +18,9 @@ class User(AbstractUser):
         validators=[
             RegexValidator(
                 regex=r"^[a-zA-Z0-9@.+-_]+$",
-                message=_("Имя пользователя может содержать только буквы, цифры и @/./+/-/_"),
+                message=_(
+                    "Имя пользователя может содержать только буквы, цифры и @/./+/-/_"
+                ),
                 code="invalid_username",
             )
         ],
@@ -73,7 +72,7 @@ class Recipe(models.Model):
     """Модель рецепта"""
 
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name="recipes",
         verbose_name="Автор",
@@ -81,9 +80,11 @@ class Recipe(models.Model):
     name = models.CharField(max_length=256, verbose_name="Название рецепта")
     text = models.TextField(verbose_name="Описание")
     cooking_time = models.PositiveIntegerField(
-        verbose_name="Время приготовления (минуты)"
+        verbose_name="Время приготовления (минуты)",
+        validators=[MinValueValidator(1, message="Минимальное время — 1 минута")],
     )
     image = models.ImageField(upload_to="recipes/images/", verbose_name="Картинка")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -93,7 +94,7 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        ordering = ["-id"]
+        ordering = ("-created_at",)
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
 
@@ -108,9 +109,12 @@ class RecipeIngredient(models.Model):
         Recipe, on_delete=models.CASCADE, related_name="recipe_ingredients"
     )
     ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, related_name="ingredient_recipes"
+        Ingredient, on_delete=models.CASCADE, related_name="recipe_ingredients"
     )
-    amount = models.PositiveIntegerField(verbose_name="Количество")
+    amount = models.PositiveIntegerField(
+        verbose_name="Количество",
+        validators=[MinValueValidator(1, message="Минимальное время — 1 минута")],
+    )
 
     class Meta:
         constraints = [
