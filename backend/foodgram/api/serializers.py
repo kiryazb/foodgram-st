@@ -6,8 +6,7 @@ import base64
 
 from rest_framework.pagination import LimitOffsetPagination
 
-from favorites.models import Favorite
-from recipes.models import User, Recipe, RecipeIngredient, Subscription, Ingredient
+from recipes.models import User, Recipe, RecipeIngredient, Subscription, Ingredient, Favorite
 from recipes.utils import Base64ImageField
 
 

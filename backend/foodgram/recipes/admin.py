@@ -1,13 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from recipes.models import Recipe, User, Ingredient, Subscription, ShoppingCart
+from recipes.models import Recipe, User, Ingredient, Subscription, ShoppingCart, Favorite
 
 from django.utils.safestring import mark_safe
 
 
 class CookingTimeFilter(admin.SimpleListFilter):
     """Фильтр по времени приготовления"""
+
     title = "Время готовки"
     parameter_name = "cooking_time_category"
 
@@ -42,7 +43,12 @@ class RecipeAdmin(admin.ModelAdmin):
         "get_image",
     )
 
-    search_fields = ("name", "author__username", "author__first_name", "author__last_name")
+    search_fields = (
+        "name",
+        "author__username",
+        "author__first_name",
+        "author__last_name",
+    )
     list_filter = ("author", "name", CookingTimeFilter)
 
     @admin.display(description="Автор")
@@ -132,5 +138,12 @@ class SubscriptionAdmin(admin.ModelAdmin):
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "recipe")
+    search_fields = ("user__username", "recipe__name")
+    list_filter = ("user", "recipe")
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "recipe", "added_at")
     search_fields = ("user__username", "recipe__name")
     list_filter = ("user", "recipe")

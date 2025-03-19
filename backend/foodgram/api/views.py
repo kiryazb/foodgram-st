@@ -1,3 +1,5 @@
+from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters import FilterSet, NumberFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,8 +12,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
 
-from favorites.models import Favorite
-from recipes.models import User, Subscription, Recipe, Ingredient, ShoppingCart
+from recipes.models import User, Subscription, Recipe, Ingredient, ShoppingCart, Favorite, RecipeIngredient
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     UserProfileSerializer,
@@ -211,7 +212,6 @@ class RecipeViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         recipe = serializer.save(author=request.user)
 
-        # Возвращаем данные в формате RecipeReadSerializer
         response_serializer = RecipeReadSerializer(recipe, context={"request": request})
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -231,108 +231,99 @@ class RecipeViewSet(ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         recipe = serializer.save()
-
-        # Возвращаем данные в формате RecipeReadSerializer
         response_serializer = RecipeReadSerializer(recipe, context={"request": request})
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
-    @action(
-        detail=True,
-        methods=["post", "delete"],
-        url_path="favorite",
-        permission_classes=[IsAuthenticated],
-    )
-    def favorite(self, request, pk=None):
+    def toggle_relation(self, request, pk, model, error_message, success_message):
         """
-        Добавить/удалить рецепт из избранного.
-        """
-        recipe = self.get_object()
+        Универсальный метод для добавления/удаления рецептов из Избранного и Корзины.
 
-        if request.method == "POST":
-            favorite, created = Favorite.objects.get_or_create(
-                user=request.user, recipe=recipe
-            )
-            if created:
-                serializer = RecipeShortSerializer(recipe, context={"request": request})
-                return Response(
-                    serializer.data, status=status.HTTP_201_CREATED
-                )  # Теперь 201 и JSON-ответ
-            return Response(
-                {"error": "Рецепт уже в избранном."}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if request.method == "DELETE":
-            deleted, _ = Favorite.objects.filter(
-                user=request.user, recipe=recipe
-            ).delete()
-            if deleted:
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(
-                {"error": "Рецепт не найден в избранном."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-    @action(detail=True, methods=["post", "delete"], permission_classes=[IsAuthenticated])
-    def shopping_cart(self, request, pk=None):
-        """
-        Добавить/удалить рецепт в корзину покупок.
+        Аргументы:
+        - request: объект запроса
+        - pk: ID рецепта
+        - model: модель, в которой нужно создать или удалить запись (Favorite или ShoppingCart)
+        - error_message: сообщение при попытке повторного добавления
+        - success_message: сообщение при успешном удалении
         """
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
 
         if request.method == "POST":
-            if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
+            obj, created = model.objects.get_or_create(user=user, recipe=recipe)
+            if not created:
                 return Response(
-                    {
-                        "error": f'Рецепт "{recipe.name}" уже добавлен в корзину.',
-                        "recipe_id": recipe.id,
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {"error": error_message.format(recipe.name)},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-            ShoppingCart.objects.create(user=user, recipe=recipe)
             serializer = RecipeShortSerializer(recipe, context={"request": request})
-            return Response(
-                {
-                    "message": f'Рецепт "{recipe.name}" успешно добавлен в корзину.',
-                    "recipe": serializer.data,
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        elif request.method == "DELETE":
-            shopping_cart_item = ShoppingCart.objects.filter(user=user, recipe=recipe)
-            if not shopping_cart_item.exists():
+        if request.method == "DELETE":
+            deleted, _ = model.objects.filter(user=user, recipe=recipe).delete()
+            if not deleted:
                 return Response(
-                    {
-                        "error": f'Рецепт "{recipe.name}" отсутствует в корзине.',
-                        "recipe_id": recipe.id,
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {"error": success_message.format(recipe.name)},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-            shopping_cart_item.delete()
-            return Response(
-                {
-                    "message": f'Рецепт "{recipe.name}" удалён из корзины.',
-                    "recipe_id": recipe.id,
-                },
-                status=status.HTTP_204_NO_CONTENT,
-            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=["get"], url_path="download_shopping_cart")
+    @action(detail=True, methods=["post", "delete"], permission_classes=[IsAuthenticated])
+    def shopping_cart(self, request, pk=None):
+        """Добавление/удаление рецепта в корзину покупок."""
+        return self.toggle_relation(
+            request, pk, ShoppingCart,
+            error_message='Рецепт "{}" уже в корзине.',
+            success_message='Рецепт "{}" отсутствует в корзине.'
+        )
+
+    @action(detail=True, methods=["post", "delete"], url_path="favorite", permission_classes=[IsAuthenticated])
+    def favorite(self, request, pk=None):
+        """Добавление/удаление рецепта в избранное."""
+        return self.toggle_relation(
+            request, pk, Favorite,
+            error_message='Рецепт "{}" уже в избранном.',
+            success_message='Рецепт "{}" не найден в избранном.'
+        )
+
+    @action(detail=False, methods=["get"], url_path="download_shopping_cart", permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         """
-        Выгрузить список покупок (не привязан к конкретному pk).
-        detail=False -> эндпоинт /recipes/download_shopping_cart/
+        Формирует и скачивает список покупок в формате .txt.
         """
-        # Логика выгрузки
-        # ...
-        return Response({"status": "ok"})
+        user = request.user
+        cart_items = ShoppingCart.objects.filter(user=user).select_related("recipe")
+
+        if not cart_items.exists():
+            return Response({"error": "Ваша корзина пуста."}, status=400)
+
+        recipe_ids = cart_items.values_list("recipe__id", flat=True)
+
+        ingredients_qs = RecipeIngredient.objects.filter(recipe_id__in=recipe_ids)
+
+        ingredients_data = (
+            ingredients_qs.values("ingredient_name", "ingredient_measurement_unit")
+            .annotate(total_amount=Sum("amount"))
+            .order_by("ingredient_name")
+        )
+
+        # Готовим содержимое файла
+        lines = ["Список покупок:\n"]
+        for item in ingredients_data:
+            name = item["ingredient_name"]
+            unit = item["ingredient_measurement_unit"]
+            amount = item["total_amount"]
+            lines.append(f"{name} ({unit}) — {amount}")
+
+        content = "\n".join(lines)
+
+        response = HttpResponse(content, content_type="text/plain; charset=utf-8")
+        response["Content-Disposition"] = 'attachment; filename="shopping_list.txt"'
+
+        return response
 
     @action(detail=True, methods=["get"], url_path="get-link")
     def get_link(self, request, pk=None):
-        """
-        Возвращает короткую ссылку для рецепта.
-        """
+        """Возвращает короткую ссылку на рецепт."""
         recipe = self.get_object()
         short_link = f"https://localhost/s/{recipe.id}"
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
