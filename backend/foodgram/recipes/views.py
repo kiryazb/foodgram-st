@@ -8,6 +8,6 @@ def get_short_link(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)
 
     # Формируем URL на локальном сервере
-    full_url = f"http://localhost:8000/api/recipes/{recipe.id}/"
+    full_url = f"http://localhost:80/recipes/{recipe.id}/"
 
     return redirect(full_url)

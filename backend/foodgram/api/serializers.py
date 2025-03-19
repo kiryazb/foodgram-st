@@ -6,7 +6,14 @@ import base64
 
 from rest_framework.pagination import LimitOffsetPagination
 
-from recipes.models import User, Recipe, RecipeIngredient, Subscription, Ingredient, Favorite
+from recipes.models import (
+    User,
+    Recipe,
+    RecipeIngredient,
+    Subscription,
+    Ingredient,
+    Favorite,
+)
 from recipes.utils import Base64ImageField
 
 
@@ -18,11 +25,17 @@ class CustomPagination(LimitOffsetPagination):
 class RecipeShortSerializer(serializers.ModelSerializer):
     """Сериализатор для краткого представления рецепта (используется в избранном)."""
 
-    image = Base64ImageField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ("id", "name", "image", "cooking_time")
+
+    def get_image(self, obj):
+        """Возвращает относительный путь к изображению, без полного URL."""
+        if obj.image:
+            return obj.image.url.lstrip("/")  # Убираем `/` в начале, если есть
+        return None
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -170,11 +183,17 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     """
 
     ingredients = IngredientInRecipeWriteSerializer(many=True, write_only=True)
-    image = Base64ImageField(required=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ("id", "name", "text", "cooking_time", "image", "ingredients")
+
+    def get_image(self, obj):
+        """Возвращает относительный путь к изображению, без полного URL."""
+        if obj.image:
+            return obj.image.url.lstrip("/")
+        return None
 
     def validate_image(self, value):
         """Проверяем, что изображение присутствует"""
@@ -279,7 +298,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField(read_only=True)
 
     # Показываем только URL изображения (или используем Base64ImageField с read_only=True)
-    image = Base64ImageField(read_only=True)
+    image = serializers.SerializerMethodField()
 
     # Флаги, вычисляемые на лету
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
@@ -298,7 +317,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             "text",
             "cooking_time",
         )
-        read_only_fields = fields  # Все поля — только для чтения
+        read_only_fields = fields
+
+    def get_image(self, obj):
+        """Возвращает относительный путь к изображению, без полного URL."""
+        if obj.image:
+            return obj.image.url.lstrip("/")
+        return None
 
     def get_author(self, obj):
         user = obj.author
