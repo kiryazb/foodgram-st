@@ -301,16 +301,16 @@ class RecipeViewSet(ModelViewSet):
         ingredients_qs = RecipeIngredient.objects.filter(recipe_id__in=recipe_ids)
 
         ingredients_data = (
-            ingredients_qs.values("ingredient_name", "ingredient_measurement_unit")
+            ingredients_qs.values("ingredient__name", "ingredient__measurement_unit")
             .annotate(total_amount=Sum("amount"))
-            .order_by("ingredient_name")
+            .order_by("ingredient__name")
         )
 
         # Готовим содержимое файла
         lines = ["Список покупок:\n"]
         for item in ingredients_data:
-            name = item["ingredient_name"]
-            unit = item["ingredient_measurement_unit"]
+            name = item["ingredient__name"]
+            unit = item["ingredient__measurement_unit"]
             amount = item["total_amount"]
             lines.append(f"{name} ({unit}) — {amount}")
 
