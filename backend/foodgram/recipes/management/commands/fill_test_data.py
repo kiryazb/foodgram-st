@@ -13,7 +13,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("Импортируем ингредиенты..."))
 
             base_dir = os.path.abspath(os.getcwd())
-            fixture_path = os.path.join(base_dir, "data", "ingredien123ts.json")
+            fixture_path = os.path.join(base_dir, "data", "ingredients.json")
 
             with open(fixture_path, encoding="utf-8") as file:
                 data = json.load(file)

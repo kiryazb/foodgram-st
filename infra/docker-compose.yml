@@ -56,6 +56,7 @@ services:
       - "8000:8000"
     volumes:
       - media_volume:/app/foodgram/media
+      - ../backend/foodgram/data:/app/foodgram/data
 
 volumes:
   pg_data:
