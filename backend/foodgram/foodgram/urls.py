@@ -24,7 +24,6 @@ urlpatterns = [
     path("api/", include('api.urls')),
     path("", include("recipes.urls")),
     path("api/auth/", include("djoser.urls.authtoken")),
-    path("api/", include("ingredients.urls")),
 ]
 
 if settings.DEBUG:

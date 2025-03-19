@@ -7,8 +7,7 @@ import base64
 from rest_framework.pagination import LimitOffsetPagination
 
 from favorites.models import Favorite
-from ingredients.models import Ingredient
-from recipes.models import User, Recipe, RecipeIngredient, Subscription
+from recipes.models import User, Recipe, RecipeIngredient, Subscription, Ingredient
 from recipes.utils import Base64ImageField
 
 
@@ -52,9 +51,10 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Проверяем, подписан ли текущий пользователь на данного автора."""
         request = self.context.get("request")
-        return request.user.is_authenticated and Subscription.objects.filter(
-            user=request.user, author=obj
-        ).exists()
+        return (
+            request.user.is_authenticated
+            and Subscription.objects.filter(user=request.user, author=obj).exists()
+        )
 
     def get_recipes(self, obj):
         """Ограничиваем число рецептов по `recipes_limit`."""
@@ -69,12 +69,13 @@ class SubscriptionSerializer(serializers.ModelSerializer):
             except ValueError:
                 pass
 
-        return RecipeShortSerializer(queryset, many=True, context={"request": request}).data
+        return RecipeShortSerializer(
+            queryset, many=True, context={"request": request}
+        ).data
 
     def get_recipes_count(self, obj):
         """Возвращает количество рецептов у пользователя."""
         return obj.recipes.count()
-
 
 
 class UserProfileSerializer(UserSerializer):
@@ -159,6 +160,7 @@ class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
         fields = ("id", "name", "measurement_unit", "amount")
+
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
     """
@@ -263,6 +265,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.bulk_create(recipe_ingredients)
         return instance
 
+
 class RecipeReadSerializer(serializers.ModelSerializer):
     """
     Сериализатор для детального/листового чтения рецепта.
@@ -333,3 +336,9 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             user.is_authenticated
             and Favorite.objects.filter(user=user, recipe=obj).exists()
         )
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = ("id", "name", "measurement_unit")

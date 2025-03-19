@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "djoser",
-    "ingredients.apps.IngredientsConfig",
     "shopping_cart.apps.ShoppingCartConfig",
     "favorites.apps.FavoritesConfig",
     "subscribers.apps.SubscribersConfig",

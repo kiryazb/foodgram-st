@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator, MinValueValidator
 from django.db import models
-from ingredients.models import Ingredient
 from django.utils.translation import gettext_lazy as _
 
 
@@ -87,7 +86,7 @@ class Recipe(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     ingredients = models.ManyToManyField(
-        Ingredient,
+        "Ingredient",
         through="RecipeIngredient",
         related_name="recipes",
         verbose_name="Ингредиенты",
@@ -109,7 +108,7 @@ class RecipeIngredient(models.Model):
         Recipe, on_delete=models.CASCADE, related_name="recipe_ingredients"
     )
     ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, related_name="recipe_ingredients"
+        "Ingredient", on_delete=models.CASCADE, related_name="recipe_ingredients"
     )
     amount = models.PositiveIntegerField(
         verbose_name="Количество",
@@ -122,3 +121,16 @@ class RecipeIngredient(models.Model):
                 fields=["recipe", "ingredient"], name="unique_recipe_ingredient"
             )
         ]
+
+
+class Ingredient(models.Model):
+    name = models.CharField(max_length=128, unique=True, verbose_name="Название")
+    measurement_unit = models.CharField(max_length=64, verbose_name="Единица измерения")
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Ингредиент"
+        verbose_name_plural = "Ингредиенты"
+
+    def __str__(self):
+        return f"{self.name} ({self.measurement_unit})"

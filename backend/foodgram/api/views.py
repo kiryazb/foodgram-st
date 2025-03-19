@@ -1,17 +1,17 @@
 from django.shortcuts import get_object_or_404
-from django_filters import FilterSet, NumberFilter
+from django_filters import FilterSet, NumberFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from favorites.models import Favorite
-from recipes.models import User, Subscription, Recipe
+from recipes.models import User, Subscription, Recipe, Ingredient
 from shopping_cart.models import ShoppingCart
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
@@ -22,6 +22,7 @@ from .serializers import (
     RecipeReadSerializer,
     RecipeWriteSerializer,
     RecipeShortSerializer,
+    IngredientSerializer,
 )
 
 
@@ -326,3 +327,22 @@ class RecipeViewSet(ModelViewSet):
         recipe = self.get_object()
         short_link = f"https://localhost/s/{recipe.id}"
         return Response({"short-link": short_link}, status=status.HTTP_200_OK)
+
+
+class IngredientFilter(FilterSet):
+    name = CharFilter(field_name="name", lookup_expr="istartswith")  # Начало слова
+
+    class Meta:
+        model = Ingredient
+        fields = ["name"]
+
+
+class IngredientViewSet(ReadOnlyModelViewSet):
+    """API для получения списка ингредиентов с фильтрацией по началу имени."""
+
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientFilter  # Используем кастомный фильтр
+    pagination_class = None
