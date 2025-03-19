@@ -24,17 +24,11 @@ class Pagination(LimitOffsetPagination):
 class RecipeShortSerializer(serializers.ModelSerializer):
     """Сериализатор для краткого представления рецепта (используется в избранном)."""
 
-    image = serializers.SerializerMethodField()
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = ("id", "name", "image", "cooking_time")
-
-    def get_image(self, obj):
-        """Возвращает относительный путь к изображению, без полного URL."""
-        if obj.image:
-            return obj.image.url.lstrip("/")  # Убираем `/` в начале, если есть
-        return None
 
 
 class UserProfileSerializer(UserSerializer):
@@ -146,7 +140,6 @@ class IngredientInRecipeReadSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source="ingredient.id")
     name = serializers.CharField(source="ingredient.name")
     measurement_unit = serializers.CharField(source="ingredient.measurement_unit")
-    amount = serializers.IntegerField()
 
     class Meta:
         model = RecipeIngredient
