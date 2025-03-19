@@ -22,3 +22,4 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter  # Используем кастомный фильтр
+    pagination_class = None

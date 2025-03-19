@@ -42,6 +42,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 # Application definition
 
 INSTALLED_APPS = [
+    "recipes.apps.RecipesConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -51,12 +52,11 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "djoser",
-    "users.apps.UsersConfig",
     "ingredients.apps.IngredientsConfig",
-    "recipes.apps.RecipesConfig",
     "shopping_cart.apps.ShoppingCartConfig",
     "favorites.apps.FavoritesConfig",
     "subscribers.apps.SubscribersConfig",
+    "api.apps.ApiConfig",
     "rest_framework.authtoken",
 ]
 
@@ -126,21 +126,32 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        # Использует `Token <auth_token>`
         "rest_framework.authentication.TokenAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",  # Должен быть открыт доступ
+        "rest_framework.permissions.AllowAny",
     ],
 }
 
 DJOSER = {
-    "HIDE_USERS": False,
-    "DISABLE_ENDPOINTS": ["users"],
+    'HIDE_USERS': False,
+    'PERMISSIONS': {
+        'current_user': ['rest_framework.permissions.IsAuthenticated'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ['rest_framework.permissions.AllowAny'],
+    },
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserProfileSerializer',
+        'current_user': 'api.serializers.UserProfileSerializer',
+    },
+    # если не хотите, чтобы Djoser отдавал список пользователей на GET /users/:
+    # 'HIDE_USERS': True,
 }
 
-AUTH_USER_MODEL = "users.CustomUser"
+AUTH_USER_MODEL = "recipes.User"
 
 
 # Internationalization

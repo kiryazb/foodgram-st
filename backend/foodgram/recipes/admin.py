@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from django.db.models import Count
 
-from recipes.models import Recipe
+from recipes.models import Recipe, User
 
 
 @admin.register(Recipe)
@@ -29,3 +30,27 @@ class RecipeAdmin(admin.ModelAdmin):
         return obj.author.username
 
     get_author_name.short_description = "Автор"
+
+
+@admin.register(User)
+class UserAdmin(UserAdmin):
+    """Админка для кастомного пользователя"""
+
+    list_display = ("id", "username", "email", "first_name", "last_name", "is_staff")
+    search_fields = ("email", "username")
+    ordering = ("id",)
+    list_filter = ("is_staff", "is_superuser", "is_active")
+
+    fieldsets = (
+        (None, {"fields": ("email", "password")}),
+        ("Персональная информация", {"fields": ("username", "first_name", "last_name", "avatar")}),
+        ("Права доступа", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        ("Даты", {"fields": ("last_login", "date_joined")}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            "classes": ("wide",),
+            "fields": ("email", "username", "first_name", "last_name", "password1", "password2"),
+        }),
+    )

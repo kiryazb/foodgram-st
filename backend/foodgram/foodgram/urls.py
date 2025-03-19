@@ -21,10 +21,9 @@ from django.conf import settings
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include("subscribers.urls")),
-    path("api/", include("users.urls")),
+    path("api/", include('api.urls')),
     path("api/auth/", include("djoser.urls.authtoken")),
-    # Подключаем своё users API
+    path("api/", include("api.urls")),
     path("api/", include("ingredients.urls")),
     path("api/", include("recipes.urls")),
 ]
