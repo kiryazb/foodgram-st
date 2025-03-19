@@ -1,25 +1,36 @@
 import os
+import json
 from django.core.management.base import BaseCommand
-from django.core.management import call_command
+from django.core.exceptions import ValidationError
+
+from recipes.models import Ingredient
+
 
 class Command(BaseCommand):
-    help = "Импортирует данные из фикстуры"
-
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS("Импортируем ингредиенты..."))
+        """Импорт данных из JSON-файла."""
+        try:
+            self.stdout.write(self.style.SUCCESS("Импортируем ингредиенты..."))
 
-        # Получаем абсолютный путь к директории, где выполняется скрипт
-        base_dir = os.path.abspath(os.getcwd())
-        fixture_path = os.path.join(base_dir, "data", "ingredients.json")
+            base_dir = os.path.abspath(os.getcwd())
+            fixture_path = os.path.join(base_dir, "data", "ingredien123ts.json")
 
-        # Вывод абсолютного пути (для отладки)
-        self.stdout.write(self.style.WARNING(f"Ищем файл по пути: {fixture_path}"))
+            with open(fixture_path, encoding="utf-8") as file:
+                data = json.load(file)
 
-        # Проверяем, существует ли файл
-        if not os.path.exists(fixture_path):
-            self.stdout.write(self.style.ERROR(f"Фикстура {fixture_path} не найдена!"))
-            return
+            ingredients_added = 0
+            for item in data:
+                name = item.get("name")
+                measurement_unit = item.get("measurement_unit")
 
-        call_command("loaddata", fixture_path)
+                ingredient, created = Ingredient.objects.get_or_create(
+                    name=name,
+                    measurement_unit=measurement_unit,
+                )
+                if created:
+                    ingredients_added += 1
 
-        self.stdout.write(self.style.SUCCESS("Импорт данных завершён!"))
+            self.stdout.write(self.style.SUCCESS(f"Импорт данных завершён! Добавлено {ingredients_added} новых ингредиентов."))
+
+        except (json.JSONDecodeError, OSError, ValidationError) as e:
+            self.stdout.write(self.style.ERROR(f"Ошибка при импорте: {e}"))

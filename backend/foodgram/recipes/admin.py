@@ -1,7 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from recipes.models import Recipe, User, Ingredient, Subscription, ShoppingCart, Favorite
+from recipes.models import (
+    Recipe,
+    User,
+    Ingredient,
+    Subscription,
+    ShoppingCart,
+    Favorite,
+)
 
 from django.utils.safestring import mark_safe
 
@@ -55,15 +62,20 @@ class RecipeAdmin(admin.ModelAdmin):
     def get_author_name(self, recipe):
         return recipe.author.get_full_name() or recipe.author.username
 
-    @admin.display(description="Добавлений в избранное")
+    @admin.display(description="В избранное")
     def get_favorites_count(self, recipe):
         return recipe.favorites.count()
 
     @admin.display(description="Ингредиенты")
     def get_ingredients(self, recipe):
-        """Выводит список ингредиентов в админке."""
-        ingredients = recipe.ingredients.values_list("ingredient__name", flat=True)
-        return ", ".join(ingredients)
+        """Выводит список ингредиентов в админке с количеством и единицей измерения."""
+        ingredients = recipe.ingredients.values_list(
+            "ingredient__name", "amount", "ingredient__measurement_unit"
+        )
+        ingredient_list = [
+            f"{name} - {amount} {unit}" for name, amount, unit in ingredients
+        ]
+        return mark_safe("<br>".join(ingredient_list))
 
     @admin.display(description="Изображение")
     def get_image(self, recipe):
@@ -77,8 +89,17 @@ class RecipeAdmin(admin.ModelAdmin):
 class UserAdmin(UserAdmin):
     """Админка для кастомного пользователя"""
 
-    list_display = ("id", "username", "email", "first_name", "last_name", "is_staff")
-    search_fields = ("email", "username")
+    list_display = (
+        "id",
+        "username",
+        "email",
+        "get_full_name",
+        "get_avatar",
+        "get_recipe_count",
+        "get_followers_count",
+        "get_following_count",
+    )
+    search_fields = ("email", "username", "first_name", "last_name")
     ordering = ("id",)
     list_filter = ("is_staff", "is_superuser", "is_active")
 
@@ -120,12 +141,48 @@ class UserAdmin(UserAdmin):
         ),
     )
 
+    @admin.display(description="ФИО")
+    def get_full_name(self, user):
+        """Отображает ФИО пользователя."""
+        return f"{user.first_name} {user.last_name}".strip()
+
+    @admin.display(description="Аватар")
+    @mark_safe
+    def get_avatar(self, user):
+        """Отображает аватар пользователя в админке."""
+        if user.avatar:
+            return f'<img src="{user.avatar.url}" width="50" height="50" style="border-radius: 50%;" />'
+        return "Нет аватара"
+
+    @admin.display(description="Рецептов")
+    def get_recipe_count(self, user):
+        """Подсчитывает количество рецептов у пользователя."""
+        return user.recipes.count()
+
+    @admin.display(description="Подписчиков")
+    def get_followers_count(self, user):
+        """Подсчитывает количество подписчиков у пользователя."""
+        return user.followers.count()
+
+    @admin.display(description="Подписок")
+    def get_following_count(self, user):
+        """Подсчитывает, на сколько пользователей подписан пользователь."""
+        return user.following.count()
+
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "measurement_unit")
-    search_fields = ("name",)
+    """Админка для ингредиентов."""
+
+    list_display = ("id", "name", "measurement_unit", "get_recipe_count")
+    search_fields = ("name", "measurement_unit")
+    list_filter = ("measurement_unit",)
     ordering = ("name",)
+
+    @admin.display(description="Используется в рецептах")
+    def get_recipe_count(self, ingredient):
+        """Подсчитывает количество рецептов, где используется ингредиент."""
+        return ingredient.recipeingredient_set.count()
 
 
 @admin.register(Subscription)
@@ -144,6 +201,6 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "recipe", "added_at")
+    list_display = ("id", "user", "recipe")
     search_fields = ("user__username", "recipe__name")
     list_filter = ("user", "recipe")

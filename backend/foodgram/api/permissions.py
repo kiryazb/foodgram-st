@@ -1,15 +1,20 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework import permissions
 
 
-class IsAuthorOrReadOnly(BasePermission):
+class IsAuthorOrReadOnly(permissions.BasePermission):
     """
-    Разрешение: читать могут все, редактировать — только автор.
+    Разрешение, позволяющее редактировать объект только его автору,
+    а читать — всем остальным.
     """
-    message = "Вы не являетесь автором данного рецепта."
+    def has_permission(self, request, view):
+        # Разрешаем доступ всем к чтению (list, retrieve) и аутентифицированным к созданию
+        # (логика при необходимости может меняться).
+        # Если нужна более тонкая настройка — можно передавать в get_permissions разные пермишены.
+        return True
 
     def has_object_permission(self, request, view, obj):
-        # Безопасные методы (GET, HEAD, OPTIONS) разрешены всем.
-        if request.method in SAFE_METHODS:
+        # Для безопасных методов (GET, HEAD, OPTIONS) разрешаем доступ всем.
+        if request.method in permissions.SAFE_METHODS:
             return True
-        # На изменения — только автор
+        # Для небезопасных методов (POST, PATCH, DELETE) проверяем автора.
         return obj.author == request.user
