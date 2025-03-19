@@ -11,8 +11,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, ViewSet
 
 from favorites.models import Favorite
-from recipes.models import User, Subscription, Recipe, Ingredient
-from shopping_cart.models import ShoppingCart
+from recipes.models import User, Subscription, Recipe, Ingredient, ShoppingCart
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     UserProfileSerializer,
