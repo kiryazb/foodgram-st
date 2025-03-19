@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     "djoser",
     "shopping_cart.apps.ShoppingCartConfig",
     "favorites.apps.FavoritesConfig",
-    "subscribers.apps.SubscribersConfig",
     "api.apps.ApiConfig",
     "rest_framework.authtoken",
 ]

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from recipes.models import Recipe, User, Ingredient
+from recipes.models import Recipe, User, Ingredient, Subscription
 
 from django.utils.safestring import mark_safe
 
@@ -120,3 +120,10 @@ class IngredientAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "measurement_unit")
     search_fields = ("name",)
     ordering = ("name",)
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "author")
+    search_fields = ("user__username", "author__username")
+    list_filter = ("user", "author")
