@@ -64,17 +64,13 @@ class UserSubscriptionSerializer(UserProfileSerializer):
         fields = UserProfileSerializer.Meta.fields + ("recipes", "recipes_count")
 
     def get_recipes(self, obj):
-        """Ограничиваем число рецептов по `recipes_limit`."""
         request = self.context.get("request")
-        recipes_limit = self.context.get("recipes_limit")
+        recipes_limit = request.query_params.get("recipes_limit")
 
         queryset = obj.recipes.all()
-        if recipes_limit:
-            try:
-                recipes_limit = int(recipes_limit)
-                queryset = queryset[:recipes_limit]
-            except ValueError:
-                pass
+
+        if recipes_limit and recipes_limit.isdigit():
+            queryset = queryset[: int(recipes_limit)]
 
         return RecipeShortSerializer(
             queryset, many=True, context={"request": request}
@@ -240,7 +236,9 @@ class RecipeReadSerializer(UserProfileSerializer):
         Используем «ленивую» форму: user.is_authenticated и ...
         """
         user = self.context["request"].user
-        return user.is_authenticated and obj.in_shopping_cart.filter(user=user).exists()
+        return (
+            user.is_authenticated and obj.in_shopping_carts.filter(user=user).exists()
+        )
 
     def get_is_favorited(self, obj):
         """

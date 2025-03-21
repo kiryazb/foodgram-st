@@ -1,9 +1,9 @@
 from datetime import datetime
-from io import BytesIO
 
 from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django_filters import FilterSet, NumberFilter, CharFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -120,14 +120,14 @@ class UserViewSet(DjoserUserViewSet):
 
             if not created:
                 return Response(
-                    {"error": "Вы уже подписаны на этого пользователя."},
+                    {
+                        "error": f"Вы уже подписаны на пользователя {author.username} (ID: {author.id})."
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            recipes_limit = request.query_params.get("recipes_limit")
-
             serializer = UserSubscriptionSerializer(
-                author, context={"request": request, "recipes_limit": recipes_limit}
+                author, context={"request": request}
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -145,8 +145,7 @@ class RecipePagination(PageNumberPagination):
 
 class RecipeFilter(FilterSet):
     """
-    Фильтр для поиска рецептов по автору, избранному и корзине.
-    Переименовываем 'queryset' → 'recipes_qs'.
+    Фильтр для поиска рецептов по автору, избранному и корзине..
     """
 
     author = NumberFilter(field_name="author_id")
@@ -166,7 +165,7 @@ class RecipeFilter(FilterSet):
             return recipes_qs.none() if value == 1 else recipes_qs
 
         if value == 1:
-            return recipes_qs.filter(in_shopping_cart__user=user)
+            return recipes_qs.filter(in_shopping_carts__user=user)
         return recipes_qs
 
     def filter_is_favorited(self, recipes_qs, name, value):
@@ -189,20 +188,7 @@ class RecipeViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
 
-    def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [AllowAny()]
-        elif self.action == "create":
-            return [IsAuthenticated()]
-        elif self.action in ["update", "partial_update", "destroy"]:
-            return [IsAuthorOrReadOnly()]
-        return super().get_permissions()
-
     def get_serializer_class(self):
-        """
-        Для списка / детального просмотра → RecipeReadSerializer,
-        для создания / обновления → RecipeWriteSerializer
-        """
         if self.action in ["list", "retrieve"]:
             return RecipeReadSerializer
         return RecipeWriteSerializer
@@ -293,13 +279,7 @@ class RecipeViewSet(ModelViewSet):
             .order_by("ingredient__name")
         )
 
-        recipes = (
-            Recipe.objects.filter(id__in=recipe_ids)
-            .select_related("author")
-            .values(
-                "name", "author__first_name", "author__last_name", "author__username"
-            )
-        )
+        recipes = Recipe.objects.filter(id__in=recipe_ids)
 
         date_str = datetime.now().strftime("%d.%m.%Y %H:%M")
 
@@ -313,7 +293,7 @@ class RecipeViewSet(ModelViewSet):
         ]
 
         recipe_list = [
-            f"- {recipe['name']} (Автор: {recipe['author__first_name']} {recipe['author__last_name'] or recipe['author__username']})"
+            f"- {recipe.name} (Автор: {recipe.author.first_name} {recipe.author.last_name or recipe.author.username})"
             for recipe in recipes
         ]
 
@@ -321,13 +301,8 @@ class RecipeViewSet(ModelViewSet):
             [header, product_header, *products, recipe_header, *recipe_list]
         )
 
-        # Используем BytesIO для создания файла в памяти
-        buffer = BytesIO()
-        buffer.write(content.encode("utf-8"))
-        buffer.seek(0)
-
         return FileResponse(
-            buffer,
+            content,
             as_attachment=True,
             filename="shopping_list.txt",
             content_type="text/plain",
@@ -338,10 +313,14 @@ class RecipeViewSet(ModelViewSet):
         """
         Возвращает короткую ссылку на рецепт.
         """
-        recipe = self.get_object()
-        relative_url = f"/s/{recipe.id}"
-        short_link = request.build_absolute_uri(relative_url)
-        return Response({"short-link": short_link}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "short-link": request.build_absolute_uri(
+                    reverse("recipes:short_link", kwargs={"recipe_id": pk})
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class IngredientFilter(FilterSet):

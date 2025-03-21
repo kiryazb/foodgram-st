@@ -122,8 +122,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.TokenAuthentication",
     ),
@@ -133,15 +133,15 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    'HIDE_USERS': False,
-    'PERMISSIONS': {
-        'current_user': ['rest_framework.permissions.IsAuthenticated'],
-        'user_list': ['rest_framework.permissions.AllowAny'],
-        'user': ['rest_framework.permissions.AllowAny'],
+    "HIDE_USERS": False,
+    "PERMISSIONS": {
+        "current_user": ["rest_framework.permissions.IsAuthenticated"],
+        "user_list": ["rest_framework.permissions.AllowAny"],
+        "user": ["rest_framework.permissions.AllowAny"],
     },
-    'SERIALIZERS': {
-        'user': 'api.serializers.UserProfileSerializer',
-        'current_user': 'api.serializers.UserProfileSerializer',
+    "SERIALIZERS": {
+        "user": "api.serializers.UserProfileSerializer",
+        "current_user": "api.serializers.UserProfileSerializer",
     },
     # если не хотите, чтобы Djoser отдавал список пользователей на GET /users/:
     # 'HIDE_USERS': True,

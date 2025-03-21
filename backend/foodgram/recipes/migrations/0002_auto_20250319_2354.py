@@ -7,37 +7,58 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('recipes', '0001_initial'),
+        ("recipes", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='favorite',
-            options={'ordering': ['user']},
+            name="favorite",
+            options={"ordering": ["user"]},
         ),
         migrations.AlterModelOptions(
-            name='user',
-            options={'ordering': ['email'], 'verbose_name': 'Пользователь', 'verbose_name_plural': 'Пользователи'},
+            name="user",
+            options={
+                "ordering": ["email"],
+                "verbose_name": "Пользователь",
+                "verbose_name_plural": "Пользователи",
+            },
         ),
         migrations.RemoveField(
-            model_name='favorite',
-            name='added_at',
+            model_name="favorite",
+            name="added_at",
         ),
         migrations.AlterField(
-            model_name='shoppingcart',
-            name='recipe',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='in_shopping_cartы', to='recipes.recipe'),
+            model_name="shoppingcart",
+            name="recipe",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="in_shopping_cartы",
+                to="recipes.recipe",
+            ),
         ),
         migrations.AlterField(
-            model_name='shoppingcart',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='shopping_cartы', to=settings.AUTH_USER_MODEL),
+            model_name="shoppingcart",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="shopping_cartы",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='username',
-            field=models.CharField(max_length=150, unique=True, validators=[django.core.validators.RegexValidator(code='invalid_username', message='Имя пользователя может содержать только буквы, цифры и @/./+/-/_', regex='^[a-zA-Z0-9@.+-_]+$')]),
+            model_name="user",
+            name="username",
+            field=models.CharField(
+                max_length=150,
+                unique=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        code="invalid_username",
+                        message="Имя пользователя может содержать только буквы, цифры и @/./+/-/_",
+                        regex="^[a-zA-Z0-9@.+-_]+$",
+                    )
+                ],
+            ),
         ),
     ]

@@ -1,9 +1,11 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
+
+from recipes.models import Recipe
 
 
 def get_short_link(request, recipe_id):
     """
     Обрабатывает короткую ссылку и перенаправляет на локальный URL рецепта.
     """
-
-    return redirect(request.build_absolute_uri(f"/recipes/{recipe_id}/"))
+    get_object_or_404(Recipe, id=recipe_id)
+    return redirect(f"/recipes/{recipe_id}/")

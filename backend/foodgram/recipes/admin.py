@@ -69,13 +69,12 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description="Ингредиенты")
     def get_ingredients(self, recipe):
         """Выводит список ингредиентов в админке с количеством и единицей измерения."""
-        ingredients = recipe.ingredients.values_list(
-            "ingredient__name", "amount", "ingredient__measurement_unit"
+        return mark_safe(
+            "<br>".join(
+                f"{ingredient.ingredient.name} - {ingredient.amount} {ingredient.ingredient.measurement_unit}"
+                for ingredient in recipe.recipe_ingredients.all()
+            )
         )
-        ingredient_list = [
-            f"{name} - {amount} {unit}" for name, amount, unit in ingredients
-        ]
-        return mark_safe("<br>".join(ingredient_list))
 
     @admin.display(description="Изображение")
     def get_image(self, recipe):
@@ -143,30 +142,25 @@ class UserAdmin(UserAdmin):
 
     @admin.display(description="ФИО")
     def get_full_name(self, user):
-        """Отображает ФИО пользователя."""
         return f"{user.first_name} {user.last_name}".strip()
 
     @admin.display(description="Аватар")
     @mark_safe
     def get_avatar(self, user):
-        """Отображает аватар пользователя в админке."""
         if user.avatar:
             return f'<img src="{user.avatar.url}" width="50" height="50" style="border-radius: 50%;" />'
         return "Нет аватара"
 
     @admin.display(description="Рецептов")
     def get_recipe_count(self, user):
-        """Подсчитывает количество рецептов у пользователя."""
         return user.recipes.count()
 
     @admin.display(description="Подписчиков")
     def get_followers_count(self, user):
-        """Подсчитывает количество подписчиков у пользователя."""
         return user.followers.count()
 
     @admin.display(description="Подписок")
     def get_following_count(self, user):
-        """Подсчитывает, на сколько пользователей подписан пользователь."""
         return user.following.count()
 
 
